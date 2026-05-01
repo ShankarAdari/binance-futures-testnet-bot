@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binance Futures Bot · Testnet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blur:20px;
+  --glass:rgba(255,255,255,0.07);
+  --glass-border:rgba(255,255,255,0.15);
+  --glass-shadow:0 8px 32px rgba(0,0,0,0.4);
+  --accent1:#a855f7;--accent2:#ec4899;--accent3:#06b6d4;
+  --green:#10d980;--red:#f43f5e;--yellow:#fbbf24;
+  --text:#f1f5f9;--muted:#94a3b8;--bg:#07080f;
+}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* Ambient orbs */
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none;
+}
+body::before{
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(168,85,247,.25),transparent 70%);
+  top:-100px;left:-100px;
+}
+body::after{
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(6,182,212,.18),transparent 70%);
+  bottom:-150px;right:-100px;
+}
+
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px 48px}
+
+/* Glass mixin */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(var(--blur));
+  -webkit-backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  box-shadow:var(--glass-shadow);
+}
+
+/* Header */
+.header{text-align:center;padding:36px 0 20px}
+.logo{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:1.8rem;font-weight:700;letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--accent3),var(--accent1),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.logo-badge{
+  background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  color:#fff;font-size:.6rem;font-weight:600;letter-spacing:.1em;
+  padding:3px 8px;border-radius:20px;-webkit-text-fill-color:#fff;
+  text-transform:uppercase;vertical-align:middle;
+}
+.tagline{color:var(--muted);font-size:.82rem;margin-top:8px;letter-spacing:.04em}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--glass-border),transparent);margin:20px 0}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.stat{
+  background:var(--glass);
+  backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  padding:16px 18px;
+  box-shadow:var(--glass-shadow);
+  transition:transform .2s;
+}
+.stat:hover{transform:translateY(-2px)}
+.stat-val{font-size:1.4rem;font-weight:700;margin-bottom:3px}
+.stat-lbl{font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.c1{background:linear-gradient(135deg,var(--accent3),var(--accent1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.c2{color:var(--green)}
+.c3{color:var(--yellow)}
+
+/* Layout */
+.grid{display:grid;grid-template-columns:350px 1fr;gap:18px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+/* Form card */
+.card{
+  background:var(--glass);
+  backdrop-filter:blur(var(--blur));
+  -webkit-backdrop-filter:blur(var(--blur));
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  box-shadow:var(--glass-shadow);
+  padding:22px;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.card-title::before{content:'';display:inline-block;width:3px;height:14px;border-radius:2px;background:linear-gradient(to bottom,var(--accent1),var(--accent2))}
+
+/* Inputs */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.68rem;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.field select,.field input{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;
+  color:var(--text);
+  padding:10px 14px;
+  font-family:'Inter',sans-serif;
+  font-size:.88rem;
+  outline:none;
+  transition:all .2s;
+  appearance:none;
+}
+.field select:focus,.field input:focus{
+  border-color:var(--accent1);
+  background:rgba(168,85,247,.08);
+  box-shadow:0 0 0 3px rgba(168,85,247,.15);
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Buttons */
+.btn{
+  width:100%;padding:13px;border:none;border-radius:14px;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;
+  cursor:pointer;transition:all .2s;letter-spacing:.02em;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);
+  pointer-events:none;
+}
+.btn-buy{
+  background:linear-gradient(135deg,#059669,#10d980);
+  color:#fff;box-shadow:0 4px 20px rgba(16,217,128,.3);
+}
+.btn-buy:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(16,217,128,.4)}
+.btn-sell{
+  background:linear-gradient(135deg,#be123c,#f43f5e);
+  color:#fff;box-shadow:0 4px 20px rgba(244,63,94,.3);
+}
+.btn-sell:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(244,63,94,.4)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Terminal */
+.terminal{
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(var(--blur));
+  -webkit-backdrop-filter:blur(var(--blur));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:var(--glass-shadow);
+}
+.term-bar{
+  background:rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:12px 18px;
+  display:flex;align-items:center;gap:7px;
+}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot-r{background:#ff5f56}.dot-y{background:#ffbd2e}.dot-g{background:#27c93f}
+.term-label{font-size:.7rem;color:var(--muted);margin-left:10px;letter-spacing:.06em}
+.term-body{
+  padding:18px;min-height:360px;max-height:480px;
+  overflow-y:auto;font-family:'JetBrains Mono','Courier New',monospace;font-size:.78rem;line-height:1.8;
+}
+.term-body::-webkit-scrollbar{width:4px}
+.term-body::-webkit-scrollbar-thumb{background:rgba(168,85,247,.4);border-radius:2px}
+
+/* Log types */
+.l-cmd{color:var(--accent3);font-weight:600}
+.l-key{color:var(--accent1);display:inline-block;min-width:130px}
+.l-val{color:var(--yellow)}
+.l-ok{color:var(--green);font-weight:600}
+.l-err{color:var(--red);font-weight:600}
+.l-dim{color:#475569;font-size:.72rem}
+.l-rule{color:rgba(255,255,255,.15);margin:6px 0}
+.l-info{color:var(--accent3)}
+
+.badge{display:inline-block;font-size:.65rem;font-weight:600;padding:2px 7px;border-radius:6px;vertical-align:middle}
+.badge-filled{background:rgba(16,217,128,.15);color:var(--green);border:1px solid rgba(16,217,128,.3)}
+.badge-new{background:rgba(6,182,212,.15);color:var(--accent3);border:1px solid rgba(6,182,212,.3)}
+.badge-err{background:rgba(244,63,94,.15);color:var(--red);border:1px solid rgba(244,63,94,.3)}
+
+.cursor{display:inline-block;width:7px;height:13px;background:var(--accent3);animation:blink 1s step-end infinite;vertical-align:middle;border-radius:1px;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+
+/* Orders table */
+.orders-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.76rem}
+th{color:var(--muted);font-weight:500;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text)}
+tr:last-child td{border:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* CLI ref */
+.cli-line{font-family:'JetBrains Mono','Courier New',monospace;font-size:.72rem;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:10px;flex-wrap:wrap}
+.cli-cmd{color:var(--accent3)}
+.cli-args{color:var(--muted)}
+
+/* Pill */
+.pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 10px;font-size:.65rem;color:var(--muted)}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+
+/* Animations */
+@keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card,.terminal,.stat{animation:fadeSlide .4s ease both}
+.stat:nth-child(2){animation-delay:.08s}
+.stat:nth-child(3){animation-delay:.16s}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      ⚡ Binance Futures Bot
+      <span class="logo-badge">Testnet</span>
+    </div>
+    <div class="tagline">USDT-M Perpetuals &nbsp;·&nbsp; Paper Trading &nbsp;·&nbsp; Python CLI &nbsp;
+      <span class="pill"><span class="pill-dot"></span> Live Simulation</span>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val c1" id="btc-price">$63,412.00</div>
+      <div class="stat-lbl">BTCUSDT · Simulated</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val c2" id="wallet">10,000.00 USDT</div>
+      <div class="stat-lbl">Testnet Wallet</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val c3" id="order-count">0</div>
+      <div class="stat-lbl">Orders Placed</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Left Panel -->
+    <div>
+      <div class="card">
+        <div class="card-title">Place Order</div>
+
+        <div class="field">
+          <label>Symbol</label>
+          <select id="sym">
+            <option>BTCUSDT</option><option>ETHUSDT</option>
+            <option>BNBUSDT</option><option>SOLUSDT</option><option>XRPUSDT</option>
+          </select>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Side</label>
+            <select id="side" onchange="syncBtn()">
+              <option>BUY</option><option>SELL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Order Type</label>
+            <select id="otype" onchange="toggleFields()">
+              <option>MARKET</option><option>LIMIT</option>
+              <option>STOP_MARKET</option><option>STOP_LIMIT</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" id="qty" value="0.001" min="0.001" step="0.001">
+        </div>
+        <div class="field" id="f-price" style="display:none">
+          <label>Limit Price (USDT)</label>
+          <input type="number" id="price" placeholder="e.g. 60000">
+        </div>
+        <div class="field" id="f-stop" style="display:none">
+          <label>Stop Price (USDT)</label>
+          <input type="number" id="stop" placeholder="e.g. 58000">
+        </div>
+        <div class="field" id="f-tif" style="display:none">
+          <label>Time In Force</label>
+          <select id="tif"><option>GTC</option><option>IOC</option><option>FOK</option></select>
+        </div>
+        <button class="btn btn-buy" id="submit-btn" onclick="placeOrder()">⚡ Place BUY Order</button>
+      </div>
+
+      <!-- Open Orders -->
+      <div class="card">
+        <div class="card-title">Open Orders</div>
+        <div class="orders-wrap">
+          <table>
+            <thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Price</th><th>Status</th></tr></thead>
+            <tbody id="orders-body">
+              <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:16px">No open orders</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div>
+      <div class="terminal">
+        <div class="term-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="term-label">cli.py — Binance Futures Testnet · USDT-M</span>
+        </div>
+        <div class="term-body" id="term">
+<div class="l-info">  ____  ___ _   _   _    _   _  ____ _____</div>
+<div class="l-rule"> | __ )|_ _| \ | | / \  | \ | |/ ___| ____|</div>
+<div style="color:var(--accent2)"> |  _ \ | ||  \| |/ _ \ |  \| | |   |  _|</div>
+<div class="l-info"> | |_) || || |\  |/ ___ \| |\  | |___| |___</div>
+<div class="l-rule"> |____/___|_| \_/_/   \_|_| \_|\____|_____|</div>
+<div style="color:var(--accent1);font-weight:600;margin:4px 0">  FUTURES TESTNET BOT -- USDT-M PERPETUALS</div>
+<div style="color:var(--muted);margin-bottom:12px">  [*] Paper Trading  [*] Python CLI  [*] Binance API</div>
+<div class="l-rule">────────────────────────────────────────</div>
+<div class="l-info">ℹ  Ready. Configure and submit an order.</div>
+<div class="l-info">ℹ  Logs → logs/trading_bot.log</div>
+<div class="l-rule">────────────────────────────────────────</div>
+<div><span class="l-cmd">$ _</span><span class="cursor"></span></div>
+        </div>
+      </div>
+
+      <!-- CLI reference -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">CLI Quick Reference</div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py place-order</span><span class="cli-args">--symbol BTCUSDT --side BUY --type MARKET --qty 0.001</span></div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py place-order</span><span class="cli-args">--symbol BTCUSDT --side BUY --type LIMIT --qty 0.001 --price 60000</span></div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py place-order</span><span class="cli-args">--type STOP_LIMIT --stop-price 58000 --price 57800 --tif GTC</span></div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py place-order --interactive</span><span class="cli-args"># guided prompts mode</span></div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py open-orders</span><span class="cli-args">--symbol BTCUSDT</span></div>
+        <div class="cli-line"><span class="cli-cmd">python cli.py price</span><span class="cli-args">--symbol BTCUSDT</span></div>
+        <div class="cli-line" style="border:none"><span class="cli-cmd">python cli.py account</span><span class="cli-args"># balances + positions</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRICES={BTCUSDT:63412,ETHUSDT:3180,BNBUSDT:580,SOLUSDT:148,XRPUSDT:0.52};
+let wallet=10000, orderCount=0, openOrders=[], oid=3988460000+Math.floor(Math.random()*9000);
+
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+// Price ticker
+(function tick(){
+  Object.keys(PRICES).forEach(s=>{PRICES[s]*=(1+(Math.random()-.5)*.0003)});
+  document.getElementById('btc-price').textContent='$'+fmt(PRICES.BTCUSDT);
+  setTimeout(tick,1800);
+})();
+
+function toggleFields(){
+  const t=document.getElementById('otype').value;
+  document.getElementById('f-price').style.display=(t==='LIMIT'||t==='STOP_LIMIT')?'block':'none';
+  document.getElementById('f-stop').style.display=(t==='STOP_MARKET'||t==='STOP_LIMIT')?'block':'none';
+  document.getElementById('f-tif').style.display=(t==='LIMIT'||t==='STOP_LIMIT')?'block':'none';
+  syncBtn();
+}
+function syncBtn(){
+  const s=document.getElementById('side').value;
+  const b=document.getElementById('submit-btn');
+  b.className='btn '+(s==='BUY'?'btn-buy':'btn-sell');
+  b.textContent='⚡ Place '+s+' Order';
+}
+document.getElementById('side').addEventListener('change',syncBtn);
+
+function log(html,delay=0){
+  return new Promise(r=>setTimeout(()=>{
+    const t=document.getElementById('term');
+    const d=document.createElement('div');d.innerHTML=html;
+    t.appendChild(d);t.scrollTop=t.scrollHeight;r();
+  },delay));
+}
+
+function renderOrders(){
+  const b=document.getElementById('orders-body');
+  if(!openOrders.length){
+    b.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:16px">No open orders</td></tr>';
+    return;
+  }
+  b.innerHTML=openOrders.map(o=>`
+    <tr>
+      <td>${o.sym}</td>
+      <td style="color:${o.side==='BUY'?'var(--green)':'var(--red)'}"><b>${o.side}</b></td>
+      <td style="color:var(--muted)">${o.type}</td>
+      <td>${o.qty}</td>
+      <td>${o.price||'—'}</td>
+      <td><span class="badge badge-new">NEW</span></td>
+    </tr>`).join('');
+}
+
+async function placeOrder(){
+  const sym=document.getElementById('sym').value;
+  const side=document.getElementById('side').value;
+  const type=document.getElementById('otype').value;
+  const qty=parseFloat(document.getElementById('qty').value)||0;
+  const price=document.getElementById('price').value;
+  const stop=document.getElementById('stop').value;
+  const tif=document.getElementById('tif').value||'GTC';
+  const btn=document.getElementById('submit-btn');
+
+  // Validate
+  if(qty<=0){await log('<span class="l-err">✘ Validation failed: quantity must be positive.</span>');return;}
+  if((type==='LIMIT'||type==='STOP_LIMIT')&&!price){
+    await log('<span class="l-err">✘ Validation failed: --price is required for '+type+' orders.</span>');return;}
+  if((type==='STOP_MARKET'||type==='STOP_LIMIT')&&!stop){
+    await log('<span class="l-err">✘ Validation failed: --stop-price is required for '+type+' orders.</span>');return;}
+
+  btn.disabled=true; btn.textContent='⏳ Submitting…';
+  const orderId=++oid;
+  const mkt=PRICES[sym]||0;
+  const ts=new Date().toISOString().replace('T',' ').slice(0,19);
+
+  await log('<div class="l-rule">────────────────────────────────────────</div>');
+  await log(`<span class="l-cmd">$ python cli.py place-order --symbol ${sym} --side ${side} --type ${type} --qty ${qty}${price?' --price '+price:''}${stop?' --stop-price '+stop:''}</span>`);
+  await log('<div style="color:var(--muted);font-size:.7rem;margin:3px 0">─────────── New Order ───────────</div>');
+  await log(`<span class="l-key">Symbol</span><span class="l-val">${sym}</span>`,100);
+  await log(`<span class="l-key">Side</span><span style="color:${side==='BUY'?'var(--green)':'var(--red)'}"><b>${side}</b></span>`,80);
+  await log(`<span class="l-key">Type</span><span class="l-val">${type}</span>`,80);
+  await log(`<span class="l-key">Quantity</span><span class="l-val">${qty}</span>`,80);
+  if(price) await log(`<span class="l-key">Limit Price</span><span class="l-val">${price} USDT</span>`,80);
+  if(stop) await log(`<span class="l-key">Stop Price</span><span class="l-val">${stop} USDT</span>`,80);
+  if(type==='LIMIT'||type==='STOP_LIMIT') await log(`<span class="l-key">Time In Force</span><span class="l-val">${tif}</span>`,80);
+  await log(`<span style="color:var(--accent1)">  Confirm order? [Y/n]: <b style="color:#fff">Y</b></span>`,300);
+  await log(`<span style="color:var(--muted)">  ◌ Submitting ${type} order...</span>`,200);
+  await new Promise(r=>setTimeout(r,900));
+
+  const filled=type==='MARKET';
+  const status=filled?'FILLED':'NEW';
+  const fillP=filled?fmt(mkt):(price?parseFloat(price).toLocaleString():'—');
+
+  await log(`<span class="l-dim">[${ts}] [DEBUG] [bot.client] ← POST /fapi/v1/order status=200</span>`,100);
+  await log(`<span class="l-dim">[${ts}] [INFO ] [bot.client] Order accepted — orderId=${orderId} status=${status}</span>`,100);
+  await log('<div style="color:var(--muted);font-size:.7rem;margin:3px 0">─────────── Result ──────────────</div>',200);
+  await log(`<span class="l-key">Order ID</span><span class="l-val">${orderId}</span>`,80);
+  await log(`<span class="l-key">Symbol</span><span class="l-val">${sym}</span>`,60);
+  await log(`<span class="l-key">Side</span><span style="color:${side==='BUY'?'var(--green)':'var(--red)'}"><b>${side}</b></span>`,60);
+  await log(`<span class="l-key">Status</span><span class="badge ${filled?'badge-filled':'badge-new'}">${status}</span>`,60);
+  await log(`<span class="l-key">Executed Qty</span><span class="l-val">${filled?qty:0}</span>`,60);
+  await log(`<span class="l-key">Avg Fill Price</span><span style="color:${filled?'var(--green)':'var(--muted)'}">${filled?'$'+fillP:'N/A'}</span>`,60);
+  if(!filled&&price) await log(`<span class="l-key">Limit Price</span><span class="l-val">$${parseFloat(price).toLocaleString()}</span>`,60);
+  await log(`<span class="l-key">Fill %</span><span style="color:${filled?'var(--green)':'var(--muted)'}">${filled?'100.00':'0.00'}%</span>`,60);
+  await log(`<span class="l-ok">✔  Order ${orderId} | Status: ${status}</span>`,200);
+  await log(`<span class="l-cmd">$ _</span><span class="cursor"></span>`,200);
+
+  orderCount++;
+  document.getElementById('order-count').textContent=orderCount;
+
+  if(filled){
+    if(side==='BUY') wallet-=qty*mkt;
+    else wallet+=qty*mkt;
+    document.getElementById('wallet').textContent=fmt(wallet)+' USDT';
+  } else {
+    openOrders.push({sym,side,type,qty,price:price?(parseFloat(price).toLocaleString()):null,id:orderId});
+    renderOrders();
+  }
+
+  btn.disabled=false; syncBtn();
+}
+</script>
+</body>
+</html>

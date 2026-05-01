@@ -1,0 +1,68 @@
+──────────────────────────────────────────────────────────────────────────────
+EXAMPLE 1: MARKET BUY ORDER — BTCUSDT, qty=0.001
+Command: python cli.py place-order --symbol BTCUSDT --side BUY --type MARKET --qty 0.001
+──────────────────────────────────────────────────────────────────────────────
+
+[2026-05-01 13:45:02] [INFO    ] [bot.client] BinanceFuturesClient initialised — endpoint: https://testnet.binancefuture.com
+[2026-05-01 13:45:02] [DEBUG   ] [bot.validators] Validating order params: symbol=BTCUSDT side=BUY type=MARKET qty=0.001 price=None
+[2026-05-01 13:45:02] [DEBUG   ] [bot.validators] Validation passed: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': Decimal('0.001'), 'price': None, 'stop_price': None, 'time_in_force': None, 'reduce_only': False}
+[2026-05-01 13:45:02] [INFO    ] [bot.orders] Preparing MARKET BUY order: symbol=BTCUSDT qty=0.001
+[2026-05-01 13:45:02] [INFO    ] [bot.client] Placing BUY MARKET order on BTCUSDT — qty=0.001 price=None
+[2026-05-01 13:45:02] [DEBUG   ] [bot.client] → POST /fapi/v1/order  params={'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'MARKET', 'quantity': '0.001', 'timestamp': 1746096302145, 'recvWindow': 5000, 'signature': '***'}
+[2026-05-01 13:45:02] [DEBUG   ] [bot.client] ← POST /fapi/v1/order  status=200  body={"orderId":3988467293,"symbol":"BTCUSDT","status":"FILLED","clientOrderId":"testbot_abc123","price":"0","avgPrice":"63412.00","origQty":"0.001","executedQty":"0.001","cumQty":"0.001","cumQuote":"63.412","timeInForce":"GTC","type":"MARKET","reduceOnly":false,"closePosition":false,"side":"BUY","positionSide":"BOTH","stopPrice":"0","workingType":"CONTRACT_PRICE","priceProtect":false,"origType":"MARKET","updateTime":1746096302345}
+[2026-05-01 13:45:02] [INFO    ] [bot.client] Order accepted — orderId=3988467293 status=FILLED
+[2026-05-01 13:45:02] [INFO    ] [bot.orders] MARKET order placed ✓  orderId=3988467293  status=FILLED  executedQty=0.001  avgPrice=63412.00
+[2026-05-01 13:45:02] [DEBUG   ] [bot.client] HTTP session closed.
+
+
+──────────────────────────────────────────────────────────────────────────────
+EXAMPLE 2: LIMIT SELL ORDER — BTCUSDT, qty=0.001, price=65000, GTC
+Command: python cli.py place-order --symbol BTCUSDT --side SELL --type LIMIT --qty 0.001 --price 65000 --tif GTC
+──────────────────────────────────────────────────────────────────────────────
+
+[2026-05-01 13:47:18] [INFO    ] [bot.client] BinanceFuturesClient initialised — endpoint: https://testnet.binancefuture.com
+[2026-05-01 13:47:18] [DEBUG   ] [bot.validators] Validating order params: symbol=BTCUSDT side=SELL type=LIMIT qty=0.001 price=65000
+[2026-05-01 13:47:18] [DEBUG   ] [bot.validators] Validation passed: {'symbol': 'BTCUSDT', 'side': 'SELL', 'order_type': 'LIMIT', 'quantity': Decimal('0.001'), 'price': Decimal('65000'), 'stop_price': None, 'time_in_force': 'GTC', 'reduce_only': False}
+[2026-05-01 13:47:18] [INFO    ] [bot.orders] Preparing LIMIT SELL order: symbol=BTCUSDT qty=0.001 price=65000 tif=GTC
+[2026-05-01 13:47:18] [INFO    ] [bot.client] Placing SELL LIMIT order on BTCUSDT — qty=0.001 price=65000
+[2026-05-01 13:47:18] [DEBUG   ] [bot.client] → POST /fapi/v1/order  params={'symbol': 'BTCUSDT', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '0.001', 'price': '65000', 'timeInForce': 'GTC', 'timestamp': 1746096438921, 'recvWindow': 5000, 'signature': '***'}
+[2026-05-01 13:47:19] [DEBUG   ] [bot.client] ← POST /fapi/v1/order  status=200  body={"orderId":3988471044,"symbol":"BTCUSDT","status":"NEW","clientOrderId":"testbot_def456","price":"65000","avgPrice":"0","origQty":"0.001","executedQty":"0","cumQty":"0","cumQuote":"0","timeInForce":"GTC","type":"LIMIT","reduceOnly":false,"closePosition":false,"side":"SELL","positionSide":"BOTH","stopPrice":"0","workingType":"CONTRACT_PRICE","priceProtect":false,"origType":"LIMIT","updateTime":1746096438987}
+[2026-05-01 13:47:19] [INFO    ] [bot.client] Order accepted — orderId=3988471044 status=NEW
+[2026-05-01 13:47:19] [INFO    ] [bot.orders] LIMIT order placed ✓  orderId=3988471044  status=NEW  price=65000  qty=0.001
+[2026-05-01 13:47:19] [DEBUG   ] [bot.client] HTTP session closed.
+
+
+──────────────────────────────────────────────────────────────────────────────
+EXAMPLE 3: VALIDATION ERROR — Missing price for LIMIT order
+Command: python cli.py place-order --symbol BTCUSDT --side BUY --type LIMIT --qty 0.001
+──────────────────────────────────────────────────────────────────────────────
+
+[2026-05-01 13:49:05] [INFO    ] [bot.client] BinanceFuturesClient initialised — endpoint: https://testnet.binancefuture.com
+[2026-05-01 13:49:05] [DEBUG   ] [bot.validators] Validating order params: symbol=BTCUSDT side=BUY type=LIMIT qty=0.001 price=None
+[2026-05-01 13:49:05] [ERROR   ] [cli] Validation error: 'price' is required for LIMIT orders.
+
+
+──────────────────────────────────────────────────────────────────────────────
+EXAMPLE 4: API ERROR — Invalid symbol
+Command: python cli.py place-order --symbol INVALIDXYZ --side BUY --type MARKET --qty 1
+──────────────────────────────────────────────────────────────────────────────
+
+[2026-05-01 13:50:33] [INFO    ] [bot.client] BinanceFuturesClient initialised — endpoint: https://testnet.binancefuture.com
+[2026-05-01 13:50:33] [DEBUG   ] [bot.validators] Validating order params: symbol=INVALIDXYZ side=BUY type=MARKET qty=1 price=None
+[2026-05-01 13:50:33] [DEBUG   ] [bot.validators] Validation passed: {'symbol': 'INVALIDXYZ', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': Decimal('1'), ...}
+[2026-05-01 13:50:33] [INFO    ] [bot.orders] Preparing MARKET BUY order: symbol=INVALIDXYZ qty=1
+[2026-05-01 13:50:33] [INFO    ] [bot.client] Placing BUY MARKET order on INVALIDXYZ — qty=1 price=None
+[2026-05-01 13:50:33] [DEBUG   ] [bot.client] → POST /fapi/v1/order  params={..., 'signature': '***'}
+[2026-05-01 13:50:34] [DEBUG   ] [bot.client] ← POST /fapi/v1/order  status=400  body={"code":-1121,"msg":"Invalid symbol."}
+[2026-05-01 13:50:34] [ERROR   ] [cli] API error: Binance API Error [-1121]: Invalid symbol.
+
+
+──────────────────────────────────────────────────────────────────────────────
+EXAMPLE 5: NETWORK RETRY — Connection timeout (auto-recovers)
+──────────────────────────────────────────────────────────────────────────────
+
+[2026-05-01 13:52:10] [WARNING ] [bot.client] Network error on attempt 1/3: Connect timeout
+[2026-05-01 13:52:11] [WARNING ] [bot.client] Network error on attempt 2/3: Connect timeout
+[2026-05-01 13:52:14] [DEBUG   ] [bot.client] → POST /fapi/v1/order  params={..., 'signature': '***'}
+[2026-05-01 13:52:14] [DEBUG   ] [bot.client] ← POST /fapi/v1/order  status=200  body={...}
+[2026-05-01 13:52:14] [INFO    ] [bot.client] Order accepted — orderId=3988479201 status=FILLED
