@@ -25,6 +25,7 @@ from urllib.parse import urlencode
 
 import httpx
 
+from .exceptions import APIError, AuthenticationError, RateLimitError, NetworkError, MaxRetriesExceeded
 from .logging_config import get_logger
 
 log = get_logger(__name__)
@@ -37,14 +38,8 @@ MAX_RETRIES = 3
 RETRY_BACKOFF = 1.5        # seconds between retries
 
 
-class BinanceAPIError(Exception):
-    """Raised when the Binance API returns a non-2xx response or error payload."""
-
-    def __init__(self, code: int, message: str, status_code: int = 0):
-        self.api_code = code
-        self.api_message = message
-        self.status_code = status_code
-        super().__init__(f"Binance API Error [{code}]: {message}")
+# BinanceAPIError kept as alias for backwards compatibility
+BinanceAPIError = APIError
 
 
 class BinanceFuturesClient:
@@ -148,16 +143,33 @@ class BinanceFuturesClient:
 
                 # Binance returns errors as {"code": <int<0>, "msg": "..."}
                 if isinstance(data, dict) and data.get("code", 0) < 0:
-                    raise BinanceAPIError(
-                        code=data["code"],
-                        message=data.get("msg", "Unknown error"),
-                        status_code=response.status_code,
+                    bcode = data["code"]
+                    msg = data.get("msg", "Unknown error")
+                    sc = response.status_code
+                    if sc in (401, 403) or bcode in (-2014, -2015, -1022):
+                        raise AuthenticationError(
+                            msg, status_code=sc, binance_code=bcode
+                        )
+                    if sc in (429, 418):
+                        raise RateLimitError(
+                            msg, status_code=sc, binance_code=bcode
+                        )
+                    raise APIError(
+                        msg, status_code=sc, binance_code=bcode
                     )
 
+                if response.status_code in (401, 403):
+                    raise AuthenticationError(
+                        "Authentication failed", status_code=response.status_code
+                    )
+                if response.status_code in (429, 418):
+                    raise RateLimitError(
+                        "Rate limit hit", status_code=response.status_code
+                    )
                 response.raise_for_status()
                 return data
 
-            except BinanceAPIError:
+            except (APIError, AuthenticationError, RateLimitError):
                 raise   # never retry business-logic errors
 
             except (httpx.TimeoutException, httpx.ConnectError) as exc:
@@ -169,13 +181,13 @@ class BinanceFuturesClient:
                     time.sleep(RETRY_BACKOFF * attempt)
 
             except httpx.HTTPStatusError as exc:
-                raise BinanceAPIError(
-                    code=exc.response.status_code,
-                    message=exc.response.text,
-                    status_code=exc.response.status_code,
+                sc = exc.response.status_code
+                raise APIError(
+                    exc.response.text,
+                    status_code=sc,
                 ) from exc
 
-        raise httpx.ConnectError(
+        raise MaxRetriesExceeded(
             f"All {MAX_RETRIES} attempts failed."
         ) from last_exc
 
@@ -204,6 +216,15 @@ class BinanceFuturesClient:
         """Get the latest mark/last price for a symbol."""
         log.info("Fetching price for %s", symbol)
         return self._request("GET", "/fapi/v1/ticker/price", params={"symbol": symbol})
+
+    def get_price(self, symbol: str) -> float:
+        """
+        Convenience method — returns the current price as a plain float.
+
+        Raises APIError if symbol is invalid.
+        """
+        data = self.get_symbol_price(symbol)
+        return float(data["price"])
 
     def place_order(
         self,
