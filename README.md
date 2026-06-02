@@ -8,6 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
+
 ## 📋 Project Overview
 
 This is not a script — it is a **mini production trading system** designed to demonstrate:
