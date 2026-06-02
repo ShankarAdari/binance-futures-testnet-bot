@@ -20,7 +20,6 @@ This is not a script — it is a **mini production trading system** designed to 
 **Live Demo UI:** https://shankaradari.github.io/binance-futures-testnet-bot/
 
 ---
-
 ## ✨ Features
 
 ### Core (Mandatory)
