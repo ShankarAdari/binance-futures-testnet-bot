@@ -79,7 +79,6 @@ trading_bot/
 ├── requirements.txt
 └── .env.example
 ```
-
 ### Data Flow
 ```
 CLI Command
